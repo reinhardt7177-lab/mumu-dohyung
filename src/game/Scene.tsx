@@ -86,7 +86,15 @@ export default function Scene({ stageIndex, onClear, onExit }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (clearedRef.current) {
-        if (e.key === 'Enter') onClear({ moves: stateRef.current.moves, pushes: stateRef.current.pushes });
+        // 클리어 후 거의 모든 키로 진행 (모바일 D-패드 / 탭 호환)
+        const continueKeys = [
+          'Enter', ' ', 'Spacebar',
+          'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+          'w', 'a', 's', 'd', 'W', 'A', 'S', 'D',
+        ];
+        if (continueKeys.includes(e.key)) {
+          onClear({ moves: stateRef.current.moves, pushes: stateRef.current.pushes });
+        }
         return;
       }
       let dir: Dir | null = null;
@@ -548,7 +556,7 @@ export default function Scene({ stageIndex, onClear, onExit }: Props) {
     if (blink) {
       ctx.fillStyle = '#f5d878';
       ctx.font = `${7 * PX}px "Pretendard","Noto Sans KR",sans-serif`;
-      ctx.fillText('Enter 키로 계속', (W * PX) / 2, 152 * PX);
+      ctx.fillText('👆 화면 탭 / Enter 키로 계속', (W * PX) / 2, 152 * PX);
     }
     ctx.textAlign = 'left';
   }
@@ -594,6 +602,16 @@ export default function Scene({ stageIndex, onClear, onExit }: Props) {
         ref={canvasRef}
         width={W * PX}
         height={H * PX}
+        onPointerDown={(e) => {
+          // 클리어 배너 떠 있을 때 화면 탭하면 다음 진행
+          if (clearedRef.current) {
+            e.preventDefault();
+            onClear({
+              moves: stateRef.current.moves,
+              pushes: stateRef.current.pushes,
+            });
+          }
+        }}
         style={{
           imageRendering: 'pixelated',
           display: 'block',
@@ -601,6 +619,7 @@ export default function Scene({ stageIndex, onClear, onExit }: Props) {
           width: 'min(100vw, calc(100vh * 16 / 9))',
           height: 'min(100vh, calc(100vw * 9 / 16))',
           touchAction: 'none',
+          cursor: 'default',
         }}
       />
       {/* 모바일/태블릿 가상 컨트롤 */}
