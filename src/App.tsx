@@ -109,8 +109,9 @@ function Intro({ onStart }: { onStart: () => void }) {
         <button style={btnStyle} onClick={onStart}>
           ▶ 시작하기
         </button>
-        <div style={{ marginTop: 16, fontSize: 12, color: '#8a7860' }}>
-          조작: ↑↓←→ 이동 / R 다시하기 / ESC 메뉴
+        <div style={{ marginTop: 16, fontSize: 13, color: '#a8c890', display: 'flex', gap: 18, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <span>🎮 화면의 ↑↓←→ 버튼으로 이동</span>
+          <span>🔁 다시 / 📋 메뉴 버튼</span>
         </div>
       </div>
     </div>

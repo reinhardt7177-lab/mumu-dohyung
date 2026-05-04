@@ -1,34 +1,7 @@
-import { useEffect, useState, CSSProperties } from 'react';
+import { useState, CSSProperties } from 'react';
 
-// 터치 입력 / 작은 화면 감지
-function useTouchOrSmall(): boolean {
-  const [is, setIs] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    const touch =
-      'ontouchstart' in window ||
-      navigator.maxTouchPoints > 0 ||
-      window.matchMedia('(pointer: coarse)').matches;
-    const narrow = window.innerWidth < 1100;
-    return touch || narrow;
-  });
-  useEffect(() => {
-    const onResize = () => {
-      const touch =
-        'ontouchstart' in window ||
-        navigator.maxTouchPoints > 0 ||
-        window.matchMedia('(pointer: coarse)').matches;
-      const narrow = window.innerWidth < 1100;
-      setIs(touch || narrow);
-    };
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-  return is;
-}
-
-// 키보드 이벤트로 게임 액션 트리거 (Scene의 keydown 핸들러가 받음)
+// 게임 액션 트리거 (Scene의 keydown 핸들러가 받음)
 function trigger(key: string) {
-  // 햅틱 피드백 (지원 디바이스만)
   if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
     navigator.vibrate(15);
   }
@@ -49,7 +22,6 @@ function PressBtn({ label, onPress, style, fontSize = 28 }: PressBtnProps) {
     e.stopPropagation();
     setPressed(true);
     onPress();
-    // 누르고 있을 때 반복 입력 (200ms 후 100ms 간격)
   };
   const handleEnd = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -67,8 +39,8 @@ function PressBtn({ label, onPress, style, fontSize = 28 }: PressBtnProps) {
         ...style,
         fontSize,
         background: pressed
-          ? 'rgba(245,216,120,0.4)'
-          : (style?.background ?? 'rgba(20,14,8,0.7)'),
+          ? 'rgba(245,216,120,0.45)'
+          : (style?.background ?? 'rgba(20,14,8,0.78)'),
         transform: pressed ? 'scale(0.92)' : 'scale(1)',
       }}
     >
@@ -77,13 +49,11 @@ function PressBtn({ label, onPress, style, fontSize = 28 }: PressBtnProps) {
   );
 }
 
+// 모바일/태블릿 중심 — 항상 표시. Scene의 캔버스 래퍼 내부에 위치.
 export default function TouchControls() {
-  const show = useTouchOrSmall();
-  if (!show) return null;
-
   return (
     <>
-      {/* D-pad (왼쪽 하단) */}
+      {/* D-pad (왼쪽 하단 — 게임 영역 안쪽) */}
       <div style={dpadContainer}>
         <PressBtn
           label="↑"
@@ -105,11 +75,10 @@ export default function TouchControls() {
           onPress={() => trigger('ArrowDown')}
           style={{ ...arrowBase, top: 112, left: 56, ...arrowBottom }}
         />
-        {/* 가운데 장식 (D-pad 느낌) */}
         <div style={dpadCenter} />
       </div>
 
-      {/* 액션 버튼 (오른쪽 하단) */}
+      {/* 액션 버튼 (오른쪽 하단 — 게임 영역 안쪽) */}
       <div style={actionContainer}>
         <PressBtn
           label="다시"
@@ -117,7 +86,7 @@ export default function TouchControls() {
           fontSize={14}
           style={{
             ...actionBase,
-            background: 'rgba(168,88,88,0.85)',
+            background: 'rgba(168,88,88,0.88)',
           }}
         />
         <PressBtn
@@ -126,7 +95,7 @@ export default function TouchControls() {
           fontSize={14}
           style={{
             ...actionBase,
-            background: 'rgba(88,104,168,0.85)',
+            background: 'rgba(88,104,168,0.88)',
           }}
         />
       </div>
@@ -139,7 +108,7 @@ const btnBase: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  border: '2px solid rgba(245,216,120,0.5)',
+  border: '2px solid rgba(245,216,120,0.55)',
   color: '#f5d878',
   fontWeight: 700,
   cursor: 'pointer',
@@ -149,18 +118,19 @@ const btnBase: CSSProperties = {
   transition: 'transform 0.05s ease, background 0.1s ease',
   fontFamily: 'inherit',
   padding: 0,
-  boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+  boxShadow: '0 4px 14px rgba(0,0,0,0.5)',
   backdropFilter: 'blur(4px)',
 };
 
+// 캔버스 래퍼 내부 absolute 배치
 const dpadContainer: CSSProperties = {
-  position: 'fixed',
-  bottom: 'max(16px, env(safe-area-inset-bottom, 16px))',
-  left: 'max(16px, env(safe-area-inset-left, 16px))',
+  position: 'absolute',
+  bottom: '4%',
+  left: '2.5%',
   width: 168,
   height: 168,
   zIndex: 100,
-  pointerEvents: 'none', // children get auto
+  pointerEvents: 'none',
 };
 
 const arrowBase: CSSProperties = {
@@ -194,14 +164,14 @@ const dpadCenter: CSSProperties = {
   height: 48,
   borderRadius: 24,
   background: 'rgba(20,14,8,0.5)',
-  border: '1px solid rgba(245,216,120,0.25)',
+  border: '1px solid rgba(245,216,120,0.3)',
   pointerEvents: 'none',
 };
 
 const actionContainer: CSSProperties = {
-  position: 'fixed',
-  bottom: 'max(16px, env(safe-area-inset-bottom, 16px))',
-  right: 'max(16px, env(safe-area-inset-right, 16px))',
+  position: 'absolute',
+  bottom: '4%',
+  right: '2.5%',
   display: 'flex',
   flexDirection: 'column',
   gap: 10,
@@ -214,5 +184,5 @@ const actionBase: CSSProperties = {
   borderRadius: 28,
   pointerEvents: 'auto',
   color: '#f5e6c8',
-  border: '2px solid rgba(245,216,120,0.5)',
+  border: '2px solid rgba(245,216,120,0.55)',
 };

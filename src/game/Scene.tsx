@@ -479,12 +479,12 @@ export default function Scene({ stageIndex, onClear, onExit }: Props) {
     ctx.font = `${9 * PX}px "Pretendard","Noto Sans KR",sans-serif`;
     ctx.fillText(STAGES[stageIndex].name, 56 * PX, 11 * PX);
 
-    // 우측: 점수 + 키 안내 (오른쪽 정렬)
+    // 우측: 점수만 (오른쪽 정렬). 조작은 화면 버튼으로.
     ctx.textAlign = 'right';
     ctx.fillStyle = '#c8b890';
-    ctx.font = `${7 * PX}px "Pretendard","Noto Sans KR",sans-serif`;
+    ctx.font = `${8 * PX}px "Pretendard","Noto Sans KR",sans-serif`;
     ctx.fillText(
-      `이동 ${s.moves} · 민 ${s.pushes}    R 다시  ·  ESC 메뉴`,
+      `이동 ${s.moves}  ·  민 ${s.pushes}`,
       (W - 6) * PX,
       11 * PX
     );
@@ -555,8 +555,8 @@ export default function Scene({ stageIndex, onClear, onExit }: Props) {
     const blink = Math.floor(tickRef.current / 30) % 2 === 0;
     if (blink) {
       ctx.fillStyle = '#f5d878';
-      ctx.font = `${7 * PX}px "Pretendard","Noto Sans KR",sans-serif`;
-      ctx.fillText('👆 화면 탭 / Enter 키로 계속', (W * PX) / 2, 152 * PX);
+      ctx.font = `${8 * PX}px "Pretendard","Noto Sans KR",sans-serif`;
+      ctx.fillText('👆 화면을 탭하여 계속', (W * PX) / 2, 152 * PX);
     }
     ctx.textAlign = 'left';
   }
@@ -595,35 +595,42 @@ export default function Scene({ stageIndex, onClear, onExit }: Props) {
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
-        position: 'relative',
       }}
     >
-      <canvas
-        ref={canvasRef}
-        width={W * PX}
-        height={H * PX}
-        onPointerDown={(e) => {
-          // 클리어 배너 떠 있을 때 화면 탭하면 다음 진행
-          if (clearedRef.current) {
-            e.preventDefault();
-            onClear({
-              moves: stateRef.current.moves,
-              pushes: stateRef.current.pushes,
-            });
-          }
-        }}
+      {/* 게임 영역 (16:9). 가상 컨트롤은 이 영역 내부에 배치 */}
+      <div
         style={{
-          imageRendering: 'pixelated',
-          display: 'block',
-          // 16:9 비율 유지하며 화면 꽉 채우기 (letterbox)
+          position: 'relative',
           width: 'min(100vw, calc(100vh * 16 / 9))',
           height: 'min(100vh, calc(100vw * 9 / 16))',
-          touchAction: 'none',
-          cursor: 'default',
         }}
-      />
-      {/* 모바일/태블릿 가상 컨트롤 */}
-      <TouchControls />
+      >
+        <canvas
+          ref={canvasRef}
+          width={W * PX}
+          height={H * PX}
+          onPointerDown={(e) => {
+            // 클리어 배너 떠 있을 때 화면 탭하면 다음 진행
+            if (clearedRef.current) {
+              e.preventDefault();
+              onClear({
+                moves: stateRef.current.moves,
+                pushes: stateRef.current.pushes,
+              });
+            }
+          }}
+          style={{
+            imageRendering: 'pixelated',
+            display: 'block',
+            width: '100%',
+            height: '100%',
+            touchAction: 'none',
+            cursor: 'default',
+          }}
+        />
+        {/* 가상 D-패드 + 액션 버튼 — 게임 영역 안쪽 */}
+        <TouchControls />
+      </div>
     </div>
   );
 }
